@@ -12,6 +12,7 @@
     "@ai-sdk/openai": "^3.0.67",
     "@auth/prisma-adapter": "^2.11.2",
     "@prisma/client": "^5.22.0",
+    "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
     "ai": "^6.0.195",
     "lucide-react": "^1.17.0",
