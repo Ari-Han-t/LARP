@@ -11,7 +11,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.67",
     "@auth/prisma-adapter": "^2.11.2",
-    "@prisma/client": "^7.8.0",
+    "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.107.0",
     "ai": "^6.0.195",
     "lucide-react": "^1.17.0",
@@ -27,7 +27,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
-    "prisma": "^7.8.0",
+    "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
