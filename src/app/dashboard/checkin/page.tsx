@@ -1,6 +1,6 @@
 "use client"
 
-import { useChat } from 'ai/react'
+import { useChat } from '@ai-sdk/react'
 import { useState } from 'react'
 import { Send, Loader2, PenTool } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -8,22 +8,29 @@ import { useRouter } from 'next/navigation'
 export default function CheckinPage() {
   const router = useRouter()
   const [isGenerating, setIsGenerating] = useState(false)
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    initialMessages: [
+  const [myInput, setMyInput] = useState('')
+  
+  const { messages, sendMessage, status, error } = useChat({
+    messages: [
       {
         id: '1',
         role: 'assistant',
         content: 'What did you do today?'
       }
-    ]
+    ],
+    onError: (err) => {
+      alert("Chat Error: " + err.message);
+    }
   })
 
-  const isReadyToGenerate = messages.length >= 4 || messages[messages.length - 1]?.content.includes("Let's generate your post")
+  const isLoading = status === 'streaming' || status === 'submitted'
+  console.log("Current messages state:", messages)
+
+  const isReadyToGenerate = messages.length >= 4 || (messages[messages.length - 1]?.content?.includes("Let's generate your post") ?? false)
 
   const handleGenerate = async () => {
     setIsGenerating(true)
     try {
-      // Save the raw input and proceed to generation view
       const rawInput = messages.map(m => `${m.role}: ${m.content}`).join('\n')
       
       const res = await fetch('/api/checkin', {
@@ -42,6 +49,13 @@ export default function CheckinPage() {
     }
   }
 
+  const handleMySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!myInput.trim()) return;
+    sendMessage({ role: 'user', content: myInput });
+    setMyInput('');
+  }
+
   return (
     <div className="max-w-2xl mx-auto flex flex-col h-[80vh]">
       <div className="flex-1 overflow-y-auto space-y-4 p-4 border rounded-xl bg-white shadow-sm mb-4">
@@ -52,7 +66,7 @@ export default function CheckinPage() {
                 ? 'bg-neutral-900 text-white rounded-br-none' 
                 : 'bg-neutral-100 text-neutral-900 rounded-bl-none'
             }`}>
-              {m.content}
+              {m.content || (m.parts && m.parts.filter(p => p.type === 'text').map((p, i) => <span key={i}>{p.text}</span>))}
             </div>
           </div>
         ))}
@@ -68,18 +82,16 @@ export default function CheckinPage() {
       </div>
 
       <div className="relative">
-        <form onSubmit={handleSubmit} className="flex gap-2">
+        <form onSubmit={handleMySubmit} className="flex gap-2">
           <input
             className="flex-1 rounded-full border border-neutral-300 px-6 py-4 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-            value={input}
-            onChange={handleInputChange}
+            value={myInput}
+            onChange={(e) => setMyInput(e.target.value)}
             placeholder={isReadyToGenerate ? "You can keep chatting, or generate your post now..." : "I built..."}
-            disabled={isLoading || isGenerating}
           />
           <button
             type="submit"
-            disabled={isLoading || !input || isGenerating}
-            className="rounded-full w-14 h-14 bg-neutral-900 flex items-center justify-center text-white hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+            className="rounded-full w-14 h-14 bg-neutral-900 flex items-center justify-center text-white hover:bg-neutral-800 transition-colors"
           >
             <Send className="h-5 w-5 ml-1" />
           </button>

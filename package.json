@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^3.0.39",
     "@ai-sdk/openai": "^3.0.67",
+    "@ai-sdk/react": "^3.0.197",
     "@auth/prisma-adapter": "^2.11.2",
     "@prisma/client": "^5.22.0",
     "@supabase/ssr": "^0.10.3",

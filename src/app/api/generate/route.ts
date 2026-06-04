@@ -1,5 +1,5 @@
-import { openai } from '@ai-sdk/openai'
-import { generateObject } from 'ai'
+import { groq } from '@ai-sdk/groq'
+import { generateText } from 'ai'
 import { z } from 'zod'
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
@@ -26,15 +26,18 @@ export async function POST(req: Request) {
     return new Response("Not Found", { status: 404 })
   }
 
-  const { object } = await generateObject({
-    model: openai('gpt-4o'),
-    schema: z.object({
-      professional: z.string().describe("Clean, concise, and professional version of the post."),
-      casual: z.string().describe("Friendly, authentic, and casual version of the post."),
-      linkedinMax: z.string().describe("Full thought-leader mode. Engaging, slightly dramatic, use emojis and spacing typical of viral LinkedIn posts."),
-    }),
-    prompt: `Convert the following daily update into three different LinkedIn posts.\n\nDaily Update Conversation:\n${checkin.rawInput}`,
+  const { text } = await generateText({
+    model: groq('llama-3.3-70b-versatile'),
+    prompt: `Convert the following daily update into three different LinkedIn posts. Please return ONLY a valid JSON object with the following exact keys: "professional", "casual", and "linkedinMax". Do not include markdown code blocks or any other text.\n\nDaily Update Conversation:\n${checkin.rawInput}`,
   })
+
+  let object;
+  try {
+    object = JSON.parse(text.trim());
+  } catch (e) {
+    const match = text.match(/\{[\s\S]*\}/);
+    object = match ? JSON.parse(match[0]) : { professional: "Error", casual: "Error", linkedinMax: "Error" };
+  }
 
   // Save the generated posts to database
   const createdPosts = await Promise.all([
