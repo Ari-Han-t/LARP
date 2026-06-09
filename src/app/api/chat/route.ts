@@ -1,6 +1,7 @@
 import { groq } from '@ai-sdk/groq'
 import { streamText } from 'ai'
 import { auth } from "@/auth"
+import prisma from "@/lib/prisma"
 
 export const maxDuration = 30
 
@@ -14,8 +15,21 @@ export async function POST(req: Request) {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const { messages } = await req.json()
+  const { messages, checkinId } = await req.json()
   console.log("Messages received:", messages.length)
+
+  if (checkinId) {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role === 'user') {
+      await prisma.message.create({
+        data: {
+          checkinId,
+          role: 'user',
+          content: lastMessage.content || '',
+        }
+      });
+    }
+  }
 
   const result = await streamText({
     model: groq('llama-3.3-70b-versatile'),
@@ -28,7 +42,18 @@ export async function POST(req: Request) {
       role: m.role, 
       content: m.content || (m.parts && m.parts.map((p: any) => p.text).join('')) || ''
     })),
+    onFinish: async ({ text }) => {
+      if (checkinId) {
+        await prisma.message.create({
+          data: {
+            checkinId,
+            role: 'assistant',
+            content: text,
+          }
+        });
+      }
+    }
   })
 
-  return result.toUIMessageStreamResponse()
+  return result.toDataStreamResponse()
 }

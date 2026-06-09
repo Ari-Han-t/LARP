@@ -35,7 +35,7 @@ export default function CheckinPage() {
       
       const res = await fetch('/api/checkin', {
         method: 'POST',
-        body: JSON.stringify({ rawInput })
+        body: JSON.stringify({ rawInput, messages })
       })
       
       const data = await res.json()

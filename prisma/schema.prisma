@@ -17,9 +17,12 @@ model User {
   sessions      Session[]
 
   // Application models
-  createdAt     DateTime  @default(now())
-  checkins      Checkin[]
-  media         Media[]
+  createdAt              DateTime  @default(now())
+  emailFrequency         String    @default("daily")
+  emailTime              String    @default("09:00")
+  timezone               String    @default("UTC")
+  checkins               Checkin[]
+  media                  Media[]
 }
 
 model Account {
@@ -62,8 +65,9 @@ model Checkin {
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rawInput   String
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
   posts      Post[]
+  messages   Message[]
 }
 
 model Post {
@@ -82,4 +86,13 @@ model Media {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   url        String
   uploadedAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  checkinId String
+  checkin   Checkin  @relation(fields: [checkinId], references: [id], onDelete: Cascade)
+  role      String   // 'user', 'assistant', 'system'
+  content   String   @db.Text
+  createdAt DateTime @default(now())
 }

@@ -52,10 +52,16 @@ function GenerateContent() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+
+
   const handlePublish = async () => {
     if (!selectedPostId) return
-    // Here we would typically update the DB to mark as published
-    // and save the media URL if attached
+    const post = posts.find(p => p.id === selectedPostId)
+    if (!post) return
+    
+    // Open LinkedIn feed with prefilled text
+    const text = encodeURIComponent(post.generatedText)
+    window.open(`https://www.linkedin.com/feed/?shareActive=true&text=${text}`, '_blank')
     setPublished(true)
   }
 
@@ -124,9 +130,21 @@ function GenerateContent() {
                 {copiedId === post.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </button>
             </div>
-            <div className="flex-1 whitespace-pre-wrap text-sm text-neutral-700">
-              {post.generatedText}
-            </div>
+            {selectedPostId === post.id ? (
+              <textarea
+                className="flex-1 w-full mt-4 p-3 border rounded-lg text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[200px] resize-y"
+                value={post.generatedText}
+                onChange={(e) => {
+                  const newText = e.target.value;
+                  setPosts(posts.map(p => p.id === post.id ? { ...p, generatedText: newText } : p));
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <div className="flex-1 whitespace-pre-wrap text-sm text-neutral-700">
+                {post.generatedText}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -171,7 +189,7 @@ function GenerateContent() {
                   Published!
                 </>
               ) : (
-                "Mark as Published"
+                "Open in LinkedIn"
               )}
             </button>
           </div>

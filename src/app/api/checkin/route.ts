@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 })
   }
 
-  const { rawInput } = await req.json()
+  const { rawInput, messages } = await req.json()
 
   if (!rawInput) {
     return new Response("Bad Request", { status: 400 })
@@ -17,6 +17,14 @@ export async function POST(req: Request) {
     data: {
       userId: session.user.id,
       rawInput,
+      ...(messages && Array.isArray(messages) && {
+        messages: {
+          create: messages.map((m: any) => ({
+            role: m.role,
+            content: m.content || '',
+          }))
+        }
+      })
     }
   })
 
