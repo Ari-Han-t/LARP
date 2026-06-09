@@ -25,7 +25,6 @@ export default function CheckinPage() {
   })
 
   const isLoading = status === 'streaming' || status === 'submitted'
-  console.log("Current messages state:", messages)
 
   const isReadyToGenerate = messages.length >= 4 || (messages[messages.length - 1]?.parts?.some((p: any) => p.type === 'text' && p.text.includes("Let's generate your post")) ?? false)
 

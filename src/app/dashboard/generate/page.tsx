@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
+import Image from "next/image"
 import { Loader2, Copy, Check, Upload, CheckCircle2, Image as ImageIcon } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -155,8 +156,8 @@ function GenerateContent() {
           
           {uploadedUrl ? (
             <div className="border border-neutral-200 rounded-2xl p-4 flex items-center gap-4 bg-white">
-              <div className="h-16 w-16 bg-neutral-100 rounded-lg flex items-center justify-center overflow-hidden">
-                <img src={uploadedUrl} alt="Uploaded media" className="object-cover h-full w-full" />
+              <div className="h-16 w-16 bg-neutral-100 rounded-lg flex items-center justify-center overflow-hidden relative">
+                <Image src={uploadedUrl} alt="Uploaded media" fill className="object-cover" />
               </div>
               <div>
                 <p className="font-medium">Image attached successfully</p>
