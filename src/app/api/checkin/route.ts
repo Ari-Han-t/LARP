@@ -6,9 +6,9 @@ const CheckinPayloadSchema = z.object({
   rawInput: z.string().min(1, "rawInput is required").max(10000, "Input too long"),
   messages: z.array(
     z.object({
-      role: z.enum(['user', 'assistant', 'system']),
-      content: z.string().max(2000, "Message content too long")
-    })
+      role: z.string(),
+      content: z.string().max(10000, "Message content too long").optional()
+    }).passthrough()
   ).optional()
 })
 

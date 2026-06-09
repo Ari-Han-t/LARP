@@ -6,9 +6,9 @@ import { z } from "zod"
 import { rateLimiter } from "@/lib/ratelimit"
 
 const MessageSchema = z.object({
-  role: z.enum(['user', 'assistant', 'system']),
-  content: z.string().max(2000, "Message content is too long")
-})
+  role: z.string(),
+  content: z.string().max(10000, "Message content is too long").optional(),
+}).passthrough()
 
 const ChatPayloadSchema = z.object({
   messages: z.array(MessageSchema).max(50, "Too many messages"),
