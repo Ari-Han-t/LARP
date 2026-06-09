@@ -1,6 +1,7 @@
 "use client"
 
 import { useChat } from '@ai-sdk/react'
+import { UIMessage } from 'ai'
 import { useState } from 'react'
 import { Send, Loader2, PenTool } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -10,12 +11,12 @@ export default function CheckinPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [myInput, setMyInput] = useState('')
   
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, sendMessage, status, error } = useChat<UIMessage>({
     messages: [
       {
         id: '1',
         role: 'assistant',
-        content: 'What did you do today?'
+        parts: [{ type: 'text', text: 'What did you do today?' }]
       }
     ],
     onError: (err) => {
@@ -26,12 +27,12 @@ export default function CheckinPage() {
   const isLoading = status === 'streaming' || status === 'submitted'
   console.log("Current messages state:", messages)
 
-  const isReadyToGenerate = messages.length >= 4 || (messages[messages.length - 1]?.content?.includes("Let's generate your post") ?? false)
+  const isReadyToGenerate = messages.length >= 4 || (messages[messages.length - 1]?.parts?.some((p: any) => p.type === 'text' && p.text.includes("Let's generate your post")) ?? false)
 
   const handleGenerate = async () => {
     setIsGenerating(true)
     try {
-      const rawInput = messages.map(m => `${m.role}: ${m.content}`).join('\n')
+      const rawInput = messages.map(m => `${m.role}: ${m.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('')}`).join('\n')
       
       const res = await fetch('/api/checkin', {
         method: 'POST',
@@ -52,7 +53,7 @@ export default function CheckinPage() {
   const handleMySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!myInput.trim()) return;
-    sendMessage({ role: 'user', content: myInput });
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: myInput }] });
     setMyInput('');
   }
 
@@ -66,7 +67,7 @@ export default function CheckinPage() {
                 ? 'bg-neutral-900 text-white rounded-br-none' 
                 : 'bg-neutral-100 text-neutral-900 rounded-bl-none'
             }`}>
-              {m.content || (m.parts && m.parts.filter(p => p.type === 'text').map((p, i) => <span key={i}>{p.text}</span>))}
+              {(m as any).content || (m.parts && m.parts.filter((p: any) => p.type === 'text').map((p: any, i: number) => <span key={i}>{p.text}</span>))}
             </div>
           </div>
         ))}

@@ -82,7 +82,7 @@ export async function GET(request: Request) {
 
     // Send emails
     const emails = usersToEmail.map(user => ({
-      from: 'LARP <reminders@larp.example.com>', // Use your verified domain
+      from: 'LARP <onboarding@resend.dev>', // Resend testing domain
       to: user.email!,
       subject: "Time for your daily LARP check-in! 📝",
       html: `
@@ -107,12 +107,12 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ 
       message: "Reminders sent successfully", 
-      count: users.length,
+      count: usersToEmail.length,
       data 
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new NextResponse(JSON.stringify({ error: error.message || 'Internal Server Error' }), { status: 500 });
   }
 }
