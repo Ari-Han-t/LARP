@@ -2,8 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { Loader2, Copy, Check, Upload, CheckCircle2, Image as ImageIcon } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { Loader2, Copy, Check, CheckCircle2 } from "lucide-react"
 
 type Post = {
   id: string
@@ -20,8 +19,6 @@ function GenerateContent() {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [published, setPublished] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (!checkinId) return
@@ -63,34 +60,6 @@ function GenerateContent() {
     const text = encodeURIComponent(post.generatedText)
     window.open(`https://www.linkedin.com/feed/?shareActive=true&text=${text}`, '_blank')
     setPublished(true)
-  }
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploading(true)
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Math.random()}.${fileExt}`
-    const filePath = `${checkinId}/${fileName}`
-
-    try {
-      const { data, error } = await supabase.storage
-        .from('media')
-        .upload(filePath, file)
-
-      if (error) throw error
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('media')
-        .getPublicUrl(filePath)
-        
-      setUploadedUrl(publicUrl)
-    } catch (error) {
-      console.error('Error uploading image: ', error)
-    } finally {
-      setUploading(false)
-    }
   }
 
   if (loading) {
@@ -151,31 +120,6 @@ function GenerateContent() {
 
       {selectedPostId && (
         <div className="animate-in fade-in slide-in-from-bottom-4 pt-8 border-t space-y-6">
-          <h2 className="text-2xl font-bold tracking-tight">Attach Media (Optional)</h2>
-          
-          {uploadedUrl ? (
-            <div className="border border-neutral-200 rounded-2xl p-4 flex items-center gap-4 bg-white">
-              <div className="h-16 w-16 bg-neutral-100 rounded-lg flex items-center justify-center overflow-hidden">
-                <img src={uploadedUrl} alt="Uploaded media" className="object-cover h-full w-full" />
-              </div>
-              <div>
-                <p className="font-medium">Image attached successfully</p>
-                <p className="text-sm text-neutral-500">This image will be included in your post.</p>
-              </div>
-              <button onClick={() => setUploadedUrl(null)} className="ml-auto text-sm text-red-500 hover:underline">Remove</button>
-            </div>
-          ) : (
-            <label className="border-2 border-dashed border-neutral-300 rounded-2xl p-12 flex flex-col items-center justify-center text-neutral-500 hover:bg-neutral-50 transition-colors cursor-pointer group">
-              <input type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleFileUpload} disabled={uploading} />
-              {uploading ? (
-                <Loader2 className="h-8 w-8 mb-2 text-neutral-400 animate-spin" />
-              ) : (
-                <Upload className="h-8 w-8 mb-2 text-neutral-400 group-hover:text-blue-500 transition-colors" />
-              )}
-              <p className="font-medium">{uploading ? 'Uploading...' : 'Click to upload or drag and drop'}</p>
-              <p className="text-sm">PNG, JPG up to 5MB</p>
-            </label>
-          )}
 
           <div className="flex justify-end pt-4">
             <button 

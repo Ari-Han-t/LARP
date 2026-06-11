@@ -1,5 +1,16 @@
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
+import { z } from "zod"
+
+const CheckinPayloadSchema = z.object({
+  rawInput: z.string().min(1, "rawInput is required").max(10000, "Input too long"),
+  messages: z.array(
+    z.object({
+      role: z.string(),
+      content: z.string().max(10000, "Message content too long").optional()
+    }).passthrough()
+  ).optional()
+})
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -7,11 +18,15 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 })
   }
 
-  const { rawInput, messages } = await req.json()
-
-  if (!rawInput) {
-    return new Response("Bad Request", { status: 400 })
+  let payload;
+  try {
+    const rawBody = await req.json()
+    payload = CheckinPayloadSchema.parse(rawBody)
+  } catch (error) {
+    return new Response("Bad Request: Invalid payload", { status: 400 })
   }
+
+  const { rawInput, messages } = payload
 
   const checkin = await prisma.checkin.create({
     data: {
